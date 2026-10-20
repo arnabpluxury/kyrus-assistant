@@ -30,6 +30,7 @@ llm:
     high: models/kyrus-high.gguf    # ~3B Q4 — 8GB+
   model_path: models/kyrus-low.gguf
   # Desktop fallback if llama-cpp-python can't load GGUF (e.g. Python 3.13 wheels)
+  # Auto-prefers training/output/kyrus-0.5b-merged when present (after train_lora.py --merge)
   hf_model_id: Qwen/Qwen2.5-0.5B-Instruct
   # Speed / quality presets applied by tier in code; these are fallbacks
   n_ctx: 2048

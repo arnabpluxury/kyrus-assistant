@@ -83,8 +83,16 @@ def create_llm(cfg: dict[str, Any], profile: DeviceProfile) -> tuple[BaseLLM, st
                 f"GGUF [{profile.tier}]: {path.name} | ctx={knobs['n_ctx']} threads={knobs['n_threads']} max_tok={knobs['max_tokens']}",
             )
         except Exception as gguf_err:
-            # Desktop GPU fallback: Transformers Instruct (same family as GGUF)
+            # Desktop GPU fallback: Transformers (prefer local fine-tune if present)
+            root = Path(__file__).resolve().parent.parent.parent
             hf_id = (llm_cfg.get("hf_model_id") or "Qwen/Qwen2.5-0.5B-Instruct").strip()
+            ft = root / "training" / "output" / "kyrus-0.5b-merged"
+            if ft.exists() and (ft / "config.json").exists():
+                hf_id = str(ft)
+            elif not hf_id.startswith("Qwen/") and not Path(hf_id).is_absolute():
+                cand = root / hf_id
+                if cand.exists():
+                    hf_id = str(cand)
             try:
                 from .hf_local import HfLocalLLM
 
@@ -95,7 +103,7 @@ def create_llm(cfg: dict[str, Any], profile: DeviceProfile) -> tuple[BaseLLM, st
                 )
                 return (
                     llm,
-                    f"HF GPU backend [{hf_id}] (GGUF runtime unavailable: {gguf_err}). Phone should use llama-cpp + {path.name}",
+                    f"HF GPU backend [{Path(hf_id).name}] (GGUF runtime unavailable: {gguf_err}). Phone: llama-cpp + {path.name}",
                 )
             except Exception as hf_err:
                 return (

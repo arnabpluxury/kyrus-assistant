@@ -119,7 +119,7 @@ def main() -> int:
         bf16=False,
         report_to=[],
         remove_unused_columns=False,
-        warmup_ratio=0.03,
+        warmup_steps=5,
         lr_scheduler_type="cosine",
         optim="adamw_torch",
     )
