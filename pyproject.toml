@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kyrus"
+version = "0.2.0"
+description = "Lightweight tools-first on-device AI agent for Android (Termux)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "PyYAML>=6.0.1",
+  "requests>=2.31.0",
+  "beautifulsoup4>=4.12.0",
+  "duckduckgo-search>=6.0.0",
+  "rich>=13.7.0",
+]
+
+[project.scripts]
+kyrus = "kyrus.main:main"
+
+[tool.setuptools.packages.find]
+include = ["kyrus*"]

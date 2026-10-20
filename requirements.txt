@@ -1,0 +1,13 @@
+# Kyrus Assistant — on-device GGUF agent (Termux / CLI)
+
+PyYAML>=6.0.1
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+duckduckgo-search>=6.0.0
+rich>=13.7.0
+huggingface_hub>=0.24.0
+
+# Local LLM runtime (required for GGUF mode)
+# llama-cpp-python>=0.2.90
+
+# GPU fine-tune extras: see training/requirements-train.txt
