@@ -1,15 +1,28 @@
-# GGUF models (required for LLM mode)
+# Kyrus GGUF models (on-device)
 
-Kyrus is **GGUF-first**. Heuristic routing is only a temporary fallback until a model is present.
+## Fine-tuned low-tier model (shipped locally after train + export)
 
-## Download (recommended)
+| File | What it is |
+|------|------------|
+| **`kyrus-low.gguf`** | **Kyrus fine-tune** — Qwen2.5-0.5B Instruct + phone/coding/security LoRA, **Q4_K_M** (~379 MB) |
+| `kyrus-low-ft.gguf` | Same weights, branded filename |
+| `kyrus-low-base.gguf` | Stock upstream Qwen2.5-0.5B Q4 (backup before fine-tune replace) |
+| `default.gguf` | Copy of `kyrus-low.gguf` for convenience |
+
+Rebuild from your GPU merge anytime:
+
+```bash
+python training/train_lora.py --merge
+python scripts/export_gguf.py --tier low
+```
+
+## Download stock tiers (no fine-tune)
 
 ```bash
 pip install huggingface_hub
-python scripts/download_models.py --tier low    # -> models/kyrus-low.gguf   (~0.5B Q4)
-python scripts/download_models.py --tier mid    # -> models/kyrus-mid.gguf
-python scripts/download_models.py --tier high   # -> models/kyrus-high.gguf
-python scripts/download_models.py --tier all
+python scripts/download_models.py --tier low    # stock -> models/kyrus-low.gguf
+python scripts/download_models.py --tier mid
+python scripts/download_models.py --tier high
 ```
 
 | File | Phone RAM | Role |
@@ -18,7 +31,7 @@ python scripts/download_models.py --tier all
 | `kyrus-mid.gguf` | ~6GB | Stronger coding/chat |
 | `kyrus-high.gguf` | 8GB+ | Best quality on-device |
 
-Then:
+Then on Termux / a Python with llama-cpp wheels:
 
 ```bash
 pip install llama-cpp-python
@@ -27,15 +40,9 @@ python -m kyrus --status
 
 ### Termux note
 
-Building `llama-cpp-python` may need:
-
 ```bash
 pkg install clang cmake make
 CMAKE_ARGS="-DGGML_OPENMP=ON" pip install llama-cpp-python
 ```
 
-## Fine-tuned weights
-
-After GPU LoRA training (`training/`), convert merged HF → GGUF and replace `kyrus-low.gguf`. See `training/README.md`.
-
-Third-party base weights (Qwen) keep their upstream licenses; Kyrus scripts/datasets use the project [LICENSE](../LICENSE).
+Third-party base weights (Qwen) keep their upstream licenses; Kyrus fine-tune recipes/scripts use the project [LICENSE](../LICENSE).

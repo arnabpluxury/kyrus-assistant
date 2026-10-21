@@ -21,11 +21,15 @@ python training/train_lora.py --epochs 2 --merge
 Adapters land in `training/output/kyrus-0.5b-lora/`.  
 Merged HF weights (with `--merge`) in `training/output/kyrus-0.5b-merged/`.
 
-### Convert merged HF → GGUF (llama.cpp)
+### Convert merged HF → on-device GGUF
 
-1. Clone [llama.cpp](https://github.com/ggerganov/llama.cpp)
-2. `python convert_hf_to_gguf.py training/output/kyrus-0.5b-merged --outfile models/kyrus-low-ft.gguf`
-3. Quantize: `./llama-quantize models/kyrus-low-ft.gguf models/kyrus-low.gguf Q4_K_M`
+One-shot (clones/uses `.deps/llama.cpp` + Windows `llama-quantize` if already set up):
+
+```bash
+python scripts/export_gguf.py --tier low
+```
+
+This writes **`models/kyrus-low.gguf`** (and `kyrus-low-ft.gguf`) as Q4_K_M from `training/output/kyrus-0.5b-merged`, keeping stock backup as `kyrus-low-base.gguf`.
 
 Or start from a public GGUF immediately:
 

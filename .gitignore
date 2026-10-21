@@ -10,6 +10,7 @@ models/*.gguf
 models/_hf_cache/
 !models/README.md
 training/output/
+.deps/
 .env
 *.log
 .kyrus/
