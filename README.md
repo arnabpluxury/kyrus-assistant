@@ -45,14 +45,15 @@ cd kyrus-assistant
 chmod +x install.sh kyrus.sh
 ./install.sh
 
-# Download the on-device brain (required for LLM mode)
-pip install huggingface_hub
-python scripts/download_models.py --tier low   # 4GB phones
-# python scripts/download_models.py --tier high # 8GB+
+# Download the on-device brain (fine-tune from GitHub Releases)
+python scripts/download_models.py --tier low   # 4GB — Kyrus fine-tune (~379MB)
+# python scripts/download_models.py --tier high # 8GB+ stock until high FT ships
 
 pip install llama-cpp-python   # or see Termux build tips in models/README.md
 kyrus
 ```
+
+Model download page: [Releases v0.2.0](https://github.com/arnabpluxury/kyrus-assistant/releases/tag/v0.2.0)
 
 ```bash
 kyrus --status

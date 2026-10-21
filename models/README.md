@@ -1,28 +1,34 @@
 # Kyrus GGUF models (on-device)
 
-## Fine-tuned low-tier model (shipped locally after train + export)
+## Download (users)
+
+Fine-tuned **low** model is on **GitHub Releases** (not inside git — too large):
+
+**https://github.com/arnabpluxury/kyrus-assistant/releases/tag/v0.2.0**
+
+```bash
+python scripts/download_models.py --tier low    # Kyrus fine-tune from GitHub Releases
+python scripts/download_models.py --tier mid    # stock Qwen (HF) until mid FT ships
+python scripts/download_models.py --tier high
+```
+
+Direct file: `kyrus-low.gguf` (~379 MB, Q4_K_M).
+
+## Local files after download / export
 
 | File | What it is |
 |------|------------|
-| **`kyrus-low.gguf`** | **Kyrus fine-tune** — Qwen2.5-0.5B Instruct + phone/coding/security LoRA, **Q4_K_M** (~379 MB) |
-| `kyrus-low-ft.gguf` | Same weights, branded filename |
-| `kyrus-low-base.gguf` | Stock upstream Qwen2.5-0.5B Q4 (backup before fine-tune replace) |
-| `default.gguf` | Copy of `kyrus-low.gguf` for convenience |
+| **`kyrus-low.gguf`** | **Kyrus fine-tune** — phone/coding/security LoRA, Q4_K_M |
+| `kyrus-low-ft.gguf` | Same weights, branded local copy |
+| `kyrus-low-base.gguf` | Stock upstream backup (maintainers only) |
+| `default.gguf` | Copy of `kyrus-low.gguf` |
 
-Rebuild from your GPU merge anytime:
+Rebuild + re-upload (maintainers):
 
 ```bash
 python training/train_lora.py --merge
 python scripts/export_gguf.py --tier low
-```
-
-## Download stock tiers (no fine-tune)
-
-```bash
-pip install huggingface_hub
-python scripts/download_models.py --tier low    # stock -> models/kyrus-low.gguf
-python scripts/download_models.py --tier mid
-python scripts/download_models.py --tier high
+gh release upload v0.2.0 models/kyrus-low.gguf --clobber
 ```
 
 | File | Phone RAM | Role |
