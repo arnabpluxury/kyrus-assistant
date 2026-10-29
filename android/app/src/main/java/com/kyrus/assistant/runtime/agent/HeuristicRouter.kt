@@ -38,11 +38,18 @@ object HeuristicRouter {
         if (t.replace("x", "*", ignoreCase = true).matches(Regex("^[0-9.\\s+\\-*/()]+$"))) {
             return Decision("calculator", mapOf("expression" to t), null)
         }
-        Regex("(?:note|remember this|save note)[:\\s]+(.+)", RegexOption.IGNORE_CASE).find(t)?.let {
+        Regex("(?:note|save note)[:\\s]+(.+)", RegexOption.IGNORE_CASE).find(t)?.let {
             return Decision("notes", mapOf("action" to "add", "text" to it.groupValues[1]), null)
         }
         if (Regex("\\b(list notes|show notes|my notes)\\b").containsMatchIn(low)) {
             return Decision("notes", mapOf("action" to "list"), null)
+        }
+        Regex("(?:remember that|remember:)\\s+(.+)", RegexOption.IGNORE_CASE).find(t)?.let {
+            return Decision("remember", mapOf("fact" to it.groupValues[1]), null)
+        }
+        if (Regex("\\b(what do you (know|remember)|recall|my memory)\\b").containsMatchIn(low)) {
+            val q = t.replace(Regex(".*?(recall|remember)\\s*", RegexOption.IGNORE_CASE), "").trim()
+            return Decision("recall", mapOf("query" to q), null)
         }
         Regex(
             "(?:create|scaffold|init|new)\\s+(?:a\\s+)?(python|web|node|js)?\\s*project\\s*(?:named\\s+|called\\s+)?([a-zA-Z0-9_\\-]+)?",

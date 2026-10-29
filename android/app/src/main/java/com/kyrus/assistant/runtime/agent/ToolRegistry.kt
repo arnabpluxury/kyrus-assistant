@@ -36,7 +36,12 @@ class ToolRegistry(
                 "list_dir" -> listDir(args["path"]?.toString() ?: ".")
                 "web_research" -> webResearch(args["query"]?.toString().orEmpty())
                 "web_news" -> webResearch("news " + args["query"]?.toString().orEmpty())
+                "fetch_url" -> fetchUrl(args["url"]?.toString().orEmpty())
                 "summarize" -> summarize(args["text"]?.toString().orEmpty())
+                "remember" -> remember(args["fact"]?.toString().orEmpty())
+                "recall" -> recall(args["query"]?.toString().orEmpty())
+                "edit_file" -> editFile(args)
+                "search_code" -> searchCode(args["query"]?.toString().orEmpty())
                 else -> gson.toJson(mapOf("error" to "Unknown tool: $name"))
             }
         } catch (e: Exception) {
@@ -112,14 +117,17 @@ class ToolRegistry(
 
     private fun deviceInfo(): String {
         val free = RuntimePaths.root.usableSpace
+        val model = RuntimePaths.modelFile
+        val modelOk = model.exists() && model.length() > 1_000_000
         return gson.toJson(
             mapOf(
                 "tier" to "android-app",
                 "workspace" to RuntimePaths.workspace.absolutePath,
-                "model" to RuntimePaths.modelFile.absolutePath,
-                "model_ready" to (RuntimePaths.modelFile.exists() && RuntimePaths.modelFile.length() > 1_000_000),
+                "model" to model.absolutePath,
+                "model_ready" to modelOk,
+                "model_mb" to if (modelOk) model.length() / (1024 * 1024) else 0,
                 "free_disk_mb" to (free / (1024 * 1024)),
-                "message" to "Kyrus Android runtime · workspace ready · model=${RuntimePaths.modelFile.exists()}",
+                "message" to "Kyrus Android · sandbox ready · GGUF=${if (modelOk) "on disk" else "missing"}",
             ),
         )
     }
@@ -261,5 +269,104 @@ class ToolRegistry(
         return gson.toJson(mapOf("summary" to summary, "message" to summary))
     }
 
+    private suspend fun fetchUrl(url: String): String {
+        if (url.isBlank()) return err("Missing url")
+        if (!url.startsWith("http://") && !url.startsWith("https://")) return err("Only http/https")
+        if (!askNetwork("Fetch URL: $url")) return err("Internet permission denied")
+        val req = Request.Builder().url(url).header("User-Agent", "KyrusAssistant-Android/0.2").build()
+        http.newCall(req).execute().use { resp ->
+            if (!resp.isSuccessful) return err("HTTP ${resp.code}")
+            val body = resp.body?.string().orEmpty()
+            val text = if (body.contains("<html", ignoreCase = true)) {
+                Jsoup.parse(body).text()
+            } else body
+            val clipped = text.replace(Regex("\\s+"), " ").take(12_000)
+            return gson.toJson(
+                mapOf(
+                    "url" to url,
+                    "text" to clipped,
+                    "message" to clipped.take(1500) + if (clipped.length > 1500) "…" else "",
+                ),
+            )
+        }
+    }
+
+    private fun remember(fact: String): String {
+        if (fact.isBlank()) return err("Nothing to remember")
+        val file = RuntimePaths.memory
+        val existing = if (file.exists()) {
+            try {
+                val arr = JsonParserSafe.stringList(file.readText())
+                arr.toMutableList()
+            } catch (_: Exception) {
+                mutableListOf()
+            }
+        } else mutableListOf()
+        if (fact !in existing) existing.add(fact)
+        val trimmed = existing.takeLast(200)
+        file.writeText(gson.toJson(mapOf("facts" to trimmed)))
+        return gson.toJson(mapOf("message" to "Remembered: $fact"))
+    }
+
+    private fun recall(query: String): String {
+        val file = RuntimePaths.memory
+        if (!file.exists()) return gson.toJson(mapOf("facts" to emptyList<String>(), "message" to "Nothing stored yet."))
+        val facts = try {
+            JsonParserSafe.stringList(file.readText())
+        } catch (_: Exception) {
+            emptyList()
+        }
+        val q = query.lowercase()
+        val hits = if (q.isBlank()) facts else facts.filter { it.lowercase().contains(q) }
+        return gson.toJson(
+            mapOf(
+                "facts" to hits,
+                "message" to (hits.joinToString("\n") { "- $it" }.ifBlank { "Nothing stored yet." }),
+            ),
+        )
+    }
+
+    private fun editFile(args: Map<String, Any?>): String {
+        val path = resolveSafe(args["path"]?.toString().orEmpty())
+        val old = args["old_string"]?.toString().orEmpty()
+        val neu = args["new_string"]?.toString().orEmpty()
+        val all = args["replace_all"]?.toString()?.toBoolean() == true
+        if (old.isEmpty()) return err("old_string required")
+        if (!path.isFile) return err("Not found")
+        val text = path.readText()
+        val count = text.split(old).size - 1
+        if (count == 0) return err("old_string not found")
+        if (count > 1 && !all) return err("old_string found $count times — set replace_all")
+        path.writeText(if (all) text.replace(old, neu) else text.replaceFirst(old, neu))
+        return gson.toJson(mapOf("path" to path.absolutePath, "message" to "Edited ${path.name}"))
+    }
+
+    private fun searchCode(query: String): String {
+        if (query.isBlank()) return err("Missing query")
+        val root = RuntimePaths.workspace
+        val hits = mutableListOf<Map<String, Any>>()
+        val exts = setOf("py", "js", "ts", "kt", "java", "md", "json", "html", "css", "sh", "txt")
+        root.walkTopDown().maxDepth(8).forEach { f ->
+            if (!f.isFile || f.extension.lowercase() !in exts) return@forEach
+            if (f.length() > 400_000) return@forEach
+            f.readLines().forEachIndexed { i, line ->
+                if (line.contains(query, ignoreCase = true)) {
+                    hits.add(mapOf("file" to f.relativeTo(root).path, "line" to (i + 1), "text" to line.trim().take(200)))
+                    if (hits.size >= 40) return gson.toJson(mapOf("hits" to hits, "message" to "${hits.size}+ matches"))
+                }
+            }
+        }
+        return gson.toJson(mapOf("hits" to hits, "message" to "${hits.size} match(es)"))
+    }
+
     private fun err(msg: String) = gson.toJson(mapOf("error" to msg))
+}
+
+/** Tiny helper so we don't drag org.json quirks for memory.json */
+private object JsonParserSafe {
+    fun stringList(raw: String): List<String> {
+        val obj = com.google.gson.JsonParser.parseString(raw).asJsonObject
+        val arr = obj.getAsJsonArray("facts") ?: return emptyList()
+        return arr.mapNotNull { if (it.isJsonPrimitive) it.asString else null }
+    }
 }

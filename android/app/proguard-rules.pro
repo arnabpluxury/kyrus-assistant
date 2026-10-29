@@ -1,3 +1,5 @@
+-keep class com.kyrus.assistant.runtime.llm.LlamaNative { *; }
 -keepclassmembers class com.kyrus.assistant.** { *; }
 -dontwarn okhttp3.**
 -dontwarn okio.**
+-keepclasseswithmembernames class * { native <methods>; }

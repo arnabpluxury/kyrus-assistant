@@ -19,4 +19,16 @@ class Prefs(context: Context) {
         if (v == null) e.remove("net_session") else e.putBoolean("net_session", v)
         e.apply()
     }
+
+    fun voiceReplies(): Boolean = sp.getBoolean("voice_replies", false)
+
+    fun setVoiceReplies(v: Boolean) {
+        sp.edit().putBoolean("voice_replies", v).apply()
+    }
+
+    fun preferLlm(): Boolean = sp.getBoolean("prefer_llm", true)
+
+    fun setPreferLlm(v: Boolean) {
+        sp.edit().putBoolean("prefer_llm", v).apply()
+    }
 }

@@ -1,5 +1,9 @@
 package com.kyrus.assistant.ui.chat
 
+import android.Manifest
+import android.app.Activity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,9 +24,12 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -38,17 +45,42 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.kyrus.assistant.runtime.agent.ChatMessage
 import com.kyrus.assistant.ui.AppViewModel
 
 @Composable
-fun ChatScreen(vm: AppViewModel) {
+fun ChatScreen(vm: AppViewModel, onOpenSettings: () -> Unit) {
     val messages by vm.messages.collectAsState()
     val busy by vm.busy.collectAsState()
     val pending by vm.pendingPermission.collectAsState()
+    val llmStatus by vm.llmStatus.collectAsState()
     var draft by remember { mutableStateOf("") }
+    var listening by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
+    val context = LocalContext.current
+    val activity = context as? Activity
+
+    val micPermission = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        if (granted && activity != null) {
+            listening = true
+            vm.voice.listen(
+                activity = activity,
+                onResult = { text ->
+                    listening = false
+                    if (text.isNotBlank()) {
+                        draft = text
+                        vm.send(text)
+                        draft = ""
+                    }
+                },
+                onError = { listening = false },
+            )
+        }
+    }
 
     LaunchedEffect(messages.size) {
         if (messages.isNotEmpty()) listState.animateScrollToItem(messages.lastIndex)
@@ -58,9 +90,7 @@ fun ChatScreen(vm: AppViewModel) {
         AlertDialog(
             onDismissRequest = { vm.resolvePermission(allowOnce = false, allowSession = false, deny = true) },
             title = { Text("Internet permission") },
-            text = {
-                Text(req.detail + "\n\nKyrus never goes online silently.")
-            },
+            text = { Text(req.detail + "\n\nKyrus never goes online silently.") },
             confirmButton = {
                 TextButton(onClick = { vm.resolvePermission(allowOnce = true, allowSession = false, deny = false) }) {
                     Text("Allow once")
@@ -87,13 +117,23 @@ fun ChatScreen(vm: AppViewModel) {
             .navigationBarsPadding()
             .imePadding(),
     ) {
-        Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)) {
-            Text("Kyrus", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
-            Text(
-                "On-device · sandboxed · permissioned tools",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f).padding(start = 8.dp)) {
+                Text("Kyrus", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
+                Text(
+                    llmStatus,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            IconButton(onClick = onOpenSettings) {
+                Icon(Icons.Filled.Settings, contentDescription = "Settings")
+            }
         }
 
         LazyColumn(
@@ -104,13 +144,11 @@ fun ChatScreen(vm: AppViewModel) {
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            items(messages, key = { it.id }) { msg ->
-                MessageBubble(msg)
-            }
-            if (busy) {
+            items(messages, key = { it.id }) { msg -> MessageBubble(msg) }
+            if (busy || listening) {
                 item {
                     Text(
-                        "Working…",
+                        if (listening) "Listening…" else "Working…",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(start = 8.dp),
@@ -138,6 +176,12 @@ fun ChatScreen(vm: AppViewModel) {
                     unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                 ),
             )
+            IconButton(
+                onClick = { micPermission.launch(Manifest.permission.RECORD_AUDIO) },
+                enabled = !busy && !listening,
+            ) {
+                Icon(Icons.Filled.Mic, contentDescription = "Voice")
+            }
             FilledIconButton(
                 onClick = {
                     val t = draft
@@ -178,7 +222,7 @@ private fun MessageBubble(msg: ChatMessage) {
             msg.toolTrace?.let {
                 Spacer(Modifier = Modifier.height(6.dp))
                 Text(
-                    "tool · $it",
+                    it,
                     style = MaterialTheme.typography.labelLarge,
                     color = if (mine) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
                     else MaterialTheme.colorScheme.secondary,

@@ -36,11 +36,11 @@ Same **Open Contribution** license family as [Kyrus Manager](https://github.com/
 
 ## Quick start — Android app (recommended)
 
-No Termux. Install the APK, tap **Continue**, watch model download progress, then chat like ChatGPT.
+No Termux. Install the APK, tap **Continue**, watch model download progress, then chat like ChatGPT with **on-device GGUF** (llama.cpp) + tools.
 
-1. Open [`android/`](android/) in **Android Studio**
+1. Open [`android/`](android/) in **Android Studio** (NDK + CMake required)
 2. Run on your phone → see [android/README.md](android/README.md)
-3. First launch downloads [`kyrus-low.gguf`](https://github.com/arnabpluxury/kyrus-assistant/releases/tag/v0.2.0) into app-private storage
+3. First launch downloads [`kyrus-low.gguf`](https://github.com/arnabpluxury/kyrus-assistant/releases/tag/v0.2.0) and loads it via JNI
 
 ## Advanced — Termux CLI (optional)
 

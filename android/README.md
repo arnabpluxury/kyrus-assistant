@@ -1,40 +1,54 @@
-# Kyrus Android app
+# Kyrus Android app (v0.3)
 
-Plug-and-play chat app — **no Termux, no CLI**. First launch shows exact sizes, downloads the fine-tuned GGUF from GitHub Releases with a progress bar, then opens a ChatGPT-style chat. Tools (research, notes, sandbox coding, …) run in the background inside an app-private “prefix” (Termux-like layout, invisible to the user).
+Plug-and-play chat — **no Termux**. First launch downloads the fine-tuned GGUF with a progress bar, loads it via **llama.cpp (NDK/JNI)**, then chats like ChatGPT with sandboxed tools.
 
-## Build (Android Studio)
+## Features
 
-1. Install [Android Studio](https://developer.android.com/studio) (JDK 17).
-2. **File → Open** → `KyrusAssistant/android`
-3. Wait for Gradle sync
-4. Run on a phone/emulator (API 26+)
+| Area | Status |
+|------|--------|
+| Setup UI (sizes + free space + progress) | Done |
+| Private runtime prefix (sandbox workspace) | Done |
+| GGUF download from GitHub Releases | Done |
+| **On-device GGUF inference (llama.cpp JNI)** | Done |
+| Tools (research, coding sandbox, notes, memory…) | Done |
+| Internet permission dialogs | Done |
+| Voice mic (STT) + optional TTS replies | Done |
+| Settings | Done |
 
-Debug APK:
+## Build
+
+1. Install **Android Studio** (JDK 17 + NDK + CMake via SDK Manager)
+2. Open `KyrusAssistant/android`
+3. First sync builds `libkyrus_llama.so` from `.deps/llama.cpp` (or FetchContent if missing)
+4. Run on a **real arm64 phone** (recommended) or x86_64 emulator
 
 ```bash
 cd android
 ./gradlew :app:assembleDebug
-# → app/build/outputs/apk/debug/app-debug.apk
+# APK → app/build/outputs/apk/debug/app-debug.apk
 ```
 
-## What users see
+### NDK tips
 
-1. **Setup** — lists runtime + model sizes, free space, download progress  
-2. **Chat** — normal messaging UI  
-3. **Permission dialog** — before any internet tool (Allow once / session / Deny)
+- SDK Manager → SDK Tools → **NDK** + **CMake**
+- Prefer `arm64-v8a` device for speed
+- First native build can take several minutes (compiles llama.cpp)
+
+## User flow
+
+1. Install APK  
+2. **Continue** → see disk needs → download ~379 MB model  
+3. Chat — model loads in background  
+4. Mic for voice input; Settings → Speak replies for TTS  
+5. Web tools ask Allow once / session / Deny  
 
 ## Architecture
 
-| Piece | Role |
-|-------|------|
-| `BootstrapManager` | Creates private prefix, downloads `kyrus-low.gguf` |
-| `KyrusEngine` + tools | Background agent (tools-first) |
-| Compose UI | Setup + chat (cream/teal Kyrus look) |
+```
+UI (Compose) → AppViewModel → KyrusEngine
+                              ├─ LlamaRuntime (JNI → libkyrus_llama.so → GGUF)
+                              └─ ToolRegistry (sandbox + OkHttp research)
+BootstrapManager → downloads kyrus-low.gguf into app-private prefix
+```
 
-Model URL: [Releases v0.2.0](https://github.com/arnabpluxury/kyrus-assistant/releases/tag/v0.2.0)
-
-## Roadmap (next)
-
-- JNI / llama.cpp Android for full GGUF chat generation (today: tools + smart router; model file is already installed for the next step)
-- Optional voice on high-end devices
-- Play Store listing
+Model release: https://github.com/arnabpluxury/kyrus-assistant/releases/tag/v0.2.0
