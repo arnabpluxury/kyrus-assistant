@@ -34,34 +34,26 @@
 
 Same **Open Contribution** license family as [Kyrus Manager](https://github.com/arnabpluxury/kyrus-manager): personal use free; shared/commercial mods must be open-sourced. See [LICENSE](LICENSE) · [TERMS.md](TERMS.md).
 
-## Quick start (phone)
+## Quick start — Android app (recommended)
+
+No Termux. Install the APK, tap **Continue**, watch model download progress, then chat like ChatGPT.
+
+1. Open [`android/`](android/) in **Android Studio**
+2. Run on your phone → see [android/README.md](android/README.md)
+3. First launch downloads [`kyrus-low.gguf`](https://github.com/arnabpluxury/kyrus-assistant/releases/tag/v0.2.0) into app-private storage
+
+## Advanced — Termux CLI (optional)
 
 ```bash
-# Termux
 pkg install python git
-cd ~
 git clone https://github.com/arnabpluxury/kyrus-assistant.git
-cd kyrus-assistant
-chmod +x install.sh kyrus.sh
-./install.sh
-
-# Download the on-device brain (fine-tune from GitHub Releases)
-python scripts/download_models.py --tier low   # 4GB — Kyrus fine-tune (~379MB)
-# python scripts/download_models.py --tier high # 8GB+ stock until high FT ships
-
-pip install llama-cpp-python   # or see Termux build tips in models/README.md
+cd kyrus-assistant && ./install.sh
+python scripts/download_models.py --tier low
+pip install llama-cpp-python
 kyrus
 ```
 
-Model download page: [Releases v0.2.0](https://github.com/arnabpluxury/kyrus-assistant/releases/tag/v0.2.0)
-
-```bash
-kyrus --status
-kyrus -q "create python project named demo"
-kyrus -q "research latest Android security bulletin"
-```
-
-Internet / shell always prompt: `[y]` once · `[s]` session · `[n]` deny.
+Internet tools always ask permission (app dialog or CLI prompt).
 
 ## Desktop / GPU training
 

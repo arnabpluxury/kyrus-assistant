@@ -15,3 +15,9 @@ training/output/
 *.log
 .kyrus/
 .DS_Store
+android/.gradle/
+android/**/build/
+android/local.properties
+android/**/captures/
+*.apk
+*.aab

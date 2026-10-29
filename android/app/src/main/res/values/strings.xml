@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Kyrus</string>
+    <string name="setup_title">Set up Kyrus</string>
+    <string name="chat_hint">Message Kyrus…</string>
+</resources>

@@ -1,0 +1,3 @@
+-keepclassmembers class com.kyrus.assistant.** { *; }
+-dontwarn okhttp3.**
+-dontwarn okio.**
