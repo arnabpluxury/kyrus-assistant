@@ -17,8 +17,14 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         // Keep APK lean — GGUF downloads after install; native lib ships in APK
+        // Cloud CI: ./gradlew assembleDebug -PkyrusAbi=arm64-v8a  (faster, phones only)
         ndk {
-            abiFilters += listOf("arm64-v8a", "x86_64")
+            val abiProp = (project.findProperty("kyrusAbi") as String?)?.trim().orEmpty()
+            if (abiProp.isNotEmpty()) {
+                abiFilters += abiProp.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+            } else {
+                abiFilters += listOf("arm64-v8a", "x86_64")
+            }
         }
         externalNativeBuild {
             cmake {

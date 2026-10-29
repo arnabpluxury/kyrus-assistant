@@ -15,24 +15,29 @@ Plug-and-play chat — **no Termux**. First launch downloads the fine-tuned GGUF
 | Voice mic (STT) + optional TTS replies | Done |
 | Settings | Done |
 
-## Build
+## Build in the cloud (recommended — no Android Studio)
 
-1. Install **Android Studio** (JDK 17 + NDK + CMake via SDK Manager)
+Same idea as Expo EAS: GitHub builds the APK for you.
+
+→ Full guide: [docs/CLOUD_BUILD.md](../docs/CLOUD_BUILD.md)
+
+```bash
+gh workflow run android-build.yml -f build_type=debug
+# then download the artifact from the Actions run
+```
+
+Or: **Actions → Android APK → Run workflow** on GitHub.
+
+## Build locally (optional)
+
+1. Install **Android Studio** (JDK 17 + NDK + CMake)
 2. Open `KyrusAssistant/android`
-3. First sync builds `libkyrus_llama.so` from `.deps/llama.cpp` (or FetchContent if missing)
-4. Run on a **real arm64 phone** (recommended) or x86_64 emulator
+3. Run on an **arm64 phone**
 
 ```bash
 cd android
-./gradlew :app:assembleDebug
-# APK → app/build/outputs/apk/debug/app-debug.apk
+./gradlew :app:assembleDebug -PkyrusAbi=arm64-v8a
 ```
-
-### NDK tips
-
-- SDK Manager → SDK Tools → **NDK** + **CMake**
-- Prefer `arm64-v8a` device for speed
-- First native build can take several minutes (compiles llama.cpp)
 
 ## User flow
 
