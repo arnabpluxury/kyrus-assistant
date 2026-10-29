@@ -1,0 +1,55 @@
+# Codemagic cloud Android builds — no local Android Studio.
+# Setup: https://codemagic.io → add this GitHub repo → Start new build
+# Docs: docs/CLOUD_BUILD.md
+
+workflows:
+  kyrus-android-debug:
+    name: Kyrus Android (debug APK)
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+    environment:
+      java: 17
+      vars:
+        PACKAGE_NAME: "com.kyrus.assistant.debug"
+    scripts:
+      - name: Set Android SDK path
+        script: |
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
+      - name: Build debug APK (arm64)
+        script: |
+          cd android
+          chmod +x gradlew
+          ./gradlew :app:assembleDebug \
+            --no-daemon --stacktrace \
+            -PkyrusAbi=arm64-v8a \
+            -Dorg.gradle.jvmargs="-Xmx6g -XX:MaxMetaspaceSize=1g"
+    artifacts:
+      - android/app/build/outputs/apk/debug/*.apk
+    publishing:
+      email:
+        recipients:
+          - business@synerstudio.net.in
+        notify:
+          success: true
+          failure: true
+
+  kyrus-android-release:
+    name: Kyrus Android (release unsigned)
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+    environment:
+      java: 17
+    scripts:
+      - name: Set Android SDK path
+        script: |
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
+      - name: Build release APK (arm64)
+        script: |
+          cd android
+          chmod +x gradlew
+          ./gradlew :app:assembleRelease \
+            --no-daemon --stacktrace \
+            -PkyrusAbi=arm64-v8a \
+            -Dorg.gradle.jvmargs="-Xmx6g -XX:MaxMetaspaceSize=1g"
+    artifacts:
+      - android/app/build/outputs/apk/release/*.apk
