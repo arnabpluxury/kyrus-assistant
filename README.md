@@ -36,14 +36,16 @@ Same **Open Contribution** license family as [Kyrus Manager](https://github.com/
 
 ## Quick start — Android app (recommended)
 
-No Termux. No Android Studio — **cloud build** (same idea as Expo EAS):
+**Install the APK** from the latest app release:
 
-1. Prefer **[Codemagic](https://codemagic.io)** → connect this repo → build **Kyrus Android (debug APK)** → download APK  
-   (GitHub Actions is also wired, but needs your GitHub billing unlocked)  
-2. Install on phone → tap **Continue** → model downloads → chat  
-3. Guide: [docs/CLOUD_BUILD.md](docs/CLOUD_BUILD.md)
+→ **[Download Kyrus-Assistant-0.3.0.apk](https://github.com/arnabpluxury/kyrus-assistant/releases/download/v0.3.0/Kyrus-Assistant-0.3.0.apk)**  
+→ Release notes: [v0.3.0](https://github.com/arnabpluxury/kyrus-assistant/releases/tag/v0.3.0)
 
-Model: [`kyrus-low.gguf` release](https://github.com/arnabpluxury/kyrus-assistant/releases/tag/v0.2.0)
+1. Install on phone (allow unknown sources if asked)  
+2. Open Kyrus → tap **Continue** → model downloads (~379 MB) → chat  
+3. Rebuild yourself anytime: [docs/CLOUD_BUILD.md](docs/CLOUD_BUILD.md) (Codemagic)
+
+On-device model asset: [`kyrus-low.gguf` (v0.2.0)](https://github.com/arnabpluxury/kyrus-assistant/releases/tag/v0.2.0)
 
 ## Advanced — Termux CLI (optional)
 

@@ -56,4 +56,5 @@ UI (Compose) → AppViewModel → KyrusEngine
 BootstrapManager → downloads kyrus-low.gguf into app-private prefix
 ```
 
-Model release: https://github.com/arnabpluxury/kyrus-assistant/releases/tag/v0.2.0
+App release (APK): https://github.com/arnabpluxury/kyrus-assistant/releases/tag/v0.3.0  
+Model release (GGUF): https://github.com/arnabpluxury/kyrus-assistant/releases/tag/v0.2.0
