@@ -67,7 +67,8 @@ class ToolRegistry(
         val p = P(0)
         fun peek(): Char? = s.getOrNull(p.i)
         fun eat() { p.i++ }
-        fun parse(): Double {
+        // parseExpr wraps parseTerm/parseFactor so paren recursion can call the outer expr parser.
+        fun parseExpr(): Double {
             fun parseFactor(): Double {
                 while (peek() == ' ') eat()
                 if (peek() == '+') { eat(); return parseFactor() }
@@ -93,20 +94,17 @@ class ToolRegistry(
                     }
                 }
             }
-            fun parseExpr(): Double {
-                var v = parseTerm()
-                while (true) {
-                    while (peek() == ' ') eat()
-                    when (peek()) {
-                        '+' -> { eat(); v += parseTerm() }
-                        '-' -> { eat(); v -= parseTerm() }
-                        else -> return v
-                    }
+            var v = parseTerm()
+            while (true) {
+                while (peek() == ' ') eat()
+                when (peek()) {
+                    '+' -> { eat(); v += parseTerm() }
+                    '-' -> { eat(); v -= parseTerm() }
+                    else -> return v
                 }
             }
-            return parseExpr()
         }
-        return parse()
+        return parseExpr()
     }
 
     private fun datetime(): String {

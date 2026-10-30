@@ -51,8 +51,10 @@ Model: [`kyrus-low.gguf` release](https://github.com/arnabpluxury/kyrus-assistan
 pkg install python git
 git clone https://github.com/arnabpluxury/kyrus-assistant.git
 cd kyrus-assistant && ./install.sh
+# Resilient re-install (keeps going if one package fails, retries with fixes):
+#   python scripts/install_deps.py -r requirements.txt --editable
 python scripts/download_models.py --tier low
-pip install llama-cpp-python
+python scripts/install_deps.py --extra llama-cpp-python   # optional GGUF runtime
 kyrus
 ```
 

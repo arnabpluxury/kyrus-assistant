@@ -67,7 +67,7 @@ fun SetupScreen(vm: AppViewModel) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
-        Spacer(Modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         Text("What will be installed", style = MaterialTheme.typography.titleLarge)
         Text(
@@ -120,7 +120,7 @@ fun SetupScreen(vm: AppViewModel) {
             }
         }
 
-        Spacer(Modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         Button(
             onClick = { vm.startSetup() },

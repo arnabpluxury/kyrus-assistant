@@ -118,22 +118,81 @@ class BootstrapManager(private val context: Context) {
     private fun downloadModel(dest: File) {
         val url = SetupManifest.modelUrl
         val partial = File(dest.parentFile, dest.name + ".partial")
-        _progress.value = SetupProgress(
-            phase = "download",
-            detail = "Downloading Kyrus model from GitHub Releases…",
-            componentId = "model",
-            bytesTotal = SetupManifest.MODEL_BYTES,
-        )
+        dest.parentFile?.mkdirs()
 
-        val req = Request.Builder().url(url).header("User-Agent", "KyrusAssistant-Android/0.2").build()
-        client.newCall(req).execute().use { resp ->
-            if (!resp.isSuccessful) error("HTTP ${resp.code} downloading model")
+        var lastError: Exception? = null
+        for (attempt in 1..4) {
+            try {
+                _progress.value = SetupProgress(
+                    phase = "download",
+                    detail = if (attempt == 1) {
+                        "Downloading Kyrus model from GitHub Releases…"
+                    } else {
+                        "Retry $attempt/4 — downloading model…"
+                    },
+                    componentId = "model",
+                    bytesTotal = SetupManifest.MODEL_BYTES,
+                    bytesDone = partial.takeIf { it.exists() }?.length() ?: 0L,
+                )
+                downloadModelAttempt(url, partial, resume = partial.exists() && partial.length() > 0L)
+                lastError = null
+                break
+            } catch (e: Exception) {
+                lastError = e
+                _progress.value = _progress.value.copy(
+                    detail = "Download hiccup (${e.message}). Fixing & retrying…",
+                    error = e.javaClass.simpleName,
+                )
+                // Drop corrupt partial under 1MB; keep larger for resume
+                if (partial.exists() && partial.length() < 1_000_000L) {
+                    partial.delete()
+                }
+                Thread.sleep((1500L * attempt).coerceAtMost(8_000L))
+            }
+        }
+        if (lastError != null) {
+            throw lastError
+        }
+
+        if (dest.exists()) dest.delete()
+        if (!partial.renameTo(dest)) {
+            partial.copyTo(dest, overwrite = true)
+            partial.delete()
+        }
+        if (!dest.exists() || dest.length() < 1_000_000L) {
+            error("Model install incomplete after retries")
+        }
+    }
+
+    private fun downloadModelAttempt(url: String, partial: File, resume: Boolean) {
+        val existing = if (resume && partial.exists()) partial.length() else 0L
+        val reqBuilder = Request.Builder()
+            .url(url)
+            .header("User-Agent", "KyrusAssistant-Android/0.2")
+        if (existing > 0L) {
+            reqBuilder.header("Range", "bytes=$existing-")
+        }
+        client.newCall(reqBuilder.build()).execute().use { resp ->
+            // 200 = full body, 206 = resumed range
+            if (!resp.isSuccessful && resp.code != 206) {
+                error("HTTP ${resp.code} downloading model")
+            }
             val body = resp.body ?: error("Empty response")
-            val total = body.contentLength().takeIf { it > 0 } ?: SetupManifest.MODEL_BYTES
+            val append = resume && resp.code == 206 && existing > 0L
+            if (!append && partial.exists()) {
+                partial.delete()
+            }
+            val total = when {
+                resp.code == 206 && existing > 0L -> {
+                    val remaining = body.contentLength().takeIf { it > 0 } ?: -1L
+                    if (remaining > 0) existing + remaining else SetupManifest.MODEL_BYTES
+                }
+                else -> body.contentLength().takeIf { it > 0 } ?: SetupManifest.MODEL_BYTES
+            }
             body.byteStream().use { input ->
-                FileOutputStream(partial).use { out ->
+                FileOutputStream(partial, append).use { out ->
                     val buf = ByteArray(256 * 1024)
-                    var done = 0L
+                    var done = if (append) existing else 0L
                     while (true) {
                         val n = input.read(buf)
                         if (n <= 0) break
@@ -150,11 +209,6 @@ class BootstrapManager(private val context: Context) {
                     out.fd.sync()
                 }
             }
-        }
-        if (dest.exists()) dest.delete()
-        if (!partial.renameTo(dest)) {
-            partial.copyTo(dest, overwrite = true)
-            partial.delete()
         }
     }
 }

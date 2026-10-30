@@ -220,7 +220,7 @@ private fun MessageBubble(msg: ChatMessage) {
                 else MaterialTheme.colorScheme.onSurface,
             )
             msg.toolTrace?.let {
-                Spacer(Modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     it,
                     style = MaterialTheme.typography.labelLarge,
