@@ -39,11 +39,11 @@ Same **Open Contribution** license family as [Kyrus Manager](https://github.com/
 **Install the APK** from the latest app release:
 
 → **[Download Kyrus-Assistant-0.3.0.apk](https://github.com/arnabpluxury/kyrus-assistant/releases/download/v0.3.0/Kyrus-Assistant-0.3.0.apk)**  
-→ Release notes: [v0.3.0](https://github.com/arnabpluxury/kyrus-assistant/releases/tag/v0.3.0)
+→ Release notes: [v0.3.0](https://github.com/arnabpluxury/kyrus-assistant/releases/tag/v0.3.0) · app source is now **0.4.0** (drawer, streaming, BYOK, 32-bit) — rebuild via Codemagic for the latest APK
 
 1. Install on phone (allow unknown sources if asked)  
-2. Open Kyrus → tap **Continue** → model downloads (~379 MB) → chat  
-3. Rebuild yourself anytime: [docs/CLOUD_BUILD.md](docs/CLOUD_BUILD.md) (Codemagic)
+2. Open Kyrus → tap **Continue** → watch the **live setup log** → model downloads (~379 MB) → chat  
+3. Rebuild yourself anytime: [docs/CLOUD_BUILD.md](docs/CLOUD_BUILD.md) (Codemagic; includes 32-bit ARM)
 
 On-device model asset: [`kyrus-low.gguf` (v0.2.0)](https://github.com/arnabpluxury/kyrus-assistant/releases/tag/v0.2.0)
 

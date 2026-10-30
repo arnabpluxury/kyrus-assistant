@@ -36,13 +36,15 @@ gh run download -n kyrus-assistant-debug
 
 | Item | Detail |
 |------|--------|
-| APK ABI | `arm64-v8a` (real phones) |
+| APK ABI | `armeabi-v7a` + `arm64-v8a` (32-bit & 64-bit phones); release CI can include x86/x86_64 |
 | Debug APK | Sideload-ready (debug keystore) |
-| Model | Still downloads on-device (~379 MB) after install |
+| Model | Still downloads on-device (~379 MB) after install — watch the live setup log |
 | Studio on PC | **Not required** |
 
 ## Install on phone
 
 1. Transfer the APK  
 2. Allow “Install unknown apps”  
-3. Open Kyrus → **Continue** → wait for model download → chat  
+3. Open Kyrus → **Continue** → follow the live setup console → chat  
+4. Optional: drawer → **Providers (BYOK)** for cloud keys; **Import / Export** before uninstall (uninstall wipes app-private models + chats)  
+

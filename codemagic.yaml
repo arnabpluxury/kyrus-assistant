@@ -15,13 +15,13 @@ workflows:
       - name: Set Android SDK path
         script: |
           echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
-      - name: Build debug APK (arm64)
+      - name: Build debug APK (32+64-bit ARM)
         script: |
           cd android
           chmod +x gradlew
           ./gradlew :app:assembleDebug \
             --no-daemon --stacktrace \
-            -PkyrusAbi=arm64-v8a \
+            -PkyrusAbi=armeabi-v7a,arm64-v8a \
             -Dorg.gradle.jvmargs="-Xmx6g -XX:MaxMetaspaceSize=1g"
     artifacts:
       - android/app/build/outputs/apk/debug/*.apk
@@ -43,13 +43,13 @@ workflows:
       - name: Set Android SDK path
         script: |
           echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
-      - name: Build release APK (arm64)
+      - name: Build release APK (all ABIs)
         script: |
           cd android
           chmod +x gradlew
           ./gradlew :app:assembleRelease \
             --no-daemon --stacktrace \
-            -PkyrusAbi=arm64-v8a \
+            -PkyrusAbi=armeabi-v7a,arm64-v8a,x86,x86_64 \
             -Dorg.gradle.jvmargs="-Xmx6g -XX:MaxMetaspaceSize=1g"
     artifacts:
       - android/app/build/outputs/apk/release/*.apk

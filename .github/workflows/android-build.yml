@@ -91,7 +91,7 @@ jobs:
           export ANDROID_NDK_ROOT="$ANDROID_NDK_HOME"
           ./gradlew :app:assembleDebug \
             --no-daemon --stacktrace \
-            -PkyrusAbi=arm64-v8a \
+            -PkyrusAbi=armeabi-v7a,arm64-v8a \
             -Dorg.gradle.jvmargs="-Xmx6g -XX:MaxMetaspaceSize=1g"
 
       - name: Build release APK (unsigned)
@@ -102,7 +102,7 @@ jobs:
           export ANDROID_NDK_ROOT="$ANDROID_NDK_HOME"
           ./gradlew :app:assembleRelease \
             --no-daemon --stacktrace \
-            -PkyrusAbi=arm64-v8a \
+            -PkyrusAbi=armeabi-v7a,arm64-v8a,x86,x86_64 \
             -Dorg.gradle.jvmargs="-Xmx6g -XX:MaxMetaspaceSize=1g"
 
       - name: Upload debug APK

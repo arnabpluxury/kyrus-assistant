@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -12,18 +13,17 @@ android {
         applicationId = "com.kyrus.assistant"
         minSdk = 26
         targetSdk = 35
-        versionCode = 3
-        versionName = "0.3.0"
+        versionCode = 4
+        versionName = "0.4.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // Keep APK lean — GGUF downloads after install; native lib ships in APK
-        // Cloud CI: ./gradlew assembleDebug -PkyrusAbi=arm64-v8a  (faster, phones only)
+        // Default: all common ABIs including 32-bit. CI can narrow with -PkyrusAbi=...
         ndk {
             val abiProp = (project.findProperty("kyrusAbi") as String?)?.trim().orEmpty()
             if (abiProp.isNotEmpty()) {
                 abiFilters += abiProp.split(",").map { it.trim() }.filter { it.isNotEmpty() }
             } else {
-                abiFilters += listOf("arm64-v8a", "x86_64")
+                abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
             }
         }
         externalNativeBuild {
@@ -81,6 +81,10 @@ android {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
+        jniLibs {
+            // Keep 32-bit + 64-bit libs in APK
+            useLegacyPackaging = false
+        }
     }
 }
 
@@ -107,6 +111,14 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("org.jsoup:jsoup:1.18.1")
     implementation("com.google.code.gson:gson:2.11.0")
+
+    val room = "2.6.1"
+    implementation("androidx.room:room-runtime:$room")
+    implementation("androidx.room:room-ktx:$room")
+    ksp("androidx.room:room-compiler:$room")
+
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    implementation("io.coil-kt:coil-compose:2.7.0")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")

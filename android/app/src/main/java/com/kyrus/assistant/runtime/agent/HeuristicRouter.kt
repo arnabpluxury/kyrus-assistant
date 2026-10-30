@@ -80,11 +80,29 @@ object HeuristicRouter {
                 return Decision("summarize", mapOf("text" to it.groupValues[1]), null)
             }
         }
+        Regex("(?:fetch image|show image|download image)\\s+(https?://\\S+)", RegexOption.IGNORE_CASE).find(t)?.let {
+            return Decision("fetch_image", mapOf("url" to it.groupValues[1]), null)
+        }
+        Regex("(?:search (?:storage|files|downloads|phone)|find (?:on (?:my )?(?:phone|storage)))\\s+(.+)$", RegexOption.IGNORE_CASE).find(t)?.let {
+            return Decision("search_storage", mapOf("query" to it.groupValues[1].trim()), null)
+        }
+        Regex("(?:zip|archive)\\s+(.+)$", RegexOption.IGNORE_CASE).find(t)?.let {
+            return Decision("archive", mapOf("path" to it.groupValues[1].trim()), null)
+        }
+        Regex("(?:unzip|unarchive|extract)\\s+(.+)$", RegexOption.IGNORE_CASE).find(t)?.let {
+            return Decision("unarchive", mapOf("path" to it.groupValues[1].trim()), null)
+        }
+        if (Regex("\\b(apps?|packages?|installed)\\b").containsMatchIn(low) && Regex("\\b(list|show|what)\\b").containsMatchIn(low)) {
+            return Decision("pkg_info", mapOf("package" to ""), null)
+        }
+        if (Regex("\\bclipboard\\b").containsMatchIn(low)) {
+            return Decision("clipboard_get", emptyMap(), null)
+        }
 
         return Decision(
             null,
             emptyMap(),
-            "Try being specific — e.g. “research …”, “calculate …”, “note …”, or “create python project named demo”.",
+            "Try being specific — e.g. “research …”, “calculate …”, “note …”, “search storage …”, or “create python project named demo”.",
         )
     }
 }

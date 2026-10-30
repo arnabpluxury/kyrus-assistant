@@ -1,5 +1,8 @@
 -keep class com.kyrus.assistant.runtime.llm.LlamaNative { *; }
+-keep class com.kyrus.assistant.runtime.llm.LlamaNative$TokenCallback { *; }
 -keepclassmembers class com.kyrus.assistant.** { *; }
+-keep class * extends androidx.room.RoomDatabase
 -dontwarn okhttp3.**
 -dontwarn okio.**
+-dontwarn org.jsoup.**
 -keepclasseswithmembernames class * { native <methods>; }
