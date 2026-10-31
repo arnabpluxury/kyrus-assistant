@@ -90,9 +90,12 @@ fun SetupScreen(vm: AppViewModel) {
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            Text("What will be installed", style = MaterialTheme.typography.titleLarge)
             Text(
-                "The APK stays small. After Continue, Kyrus prepares a private runtime " +
+                text = "What will be installed",
+                style = MaterialTheme.typography.titleLarge,
+            )
+            Text(
+                text = "The APK stays small. After Continue, Kyrus prepares a private runtime " +
                     "and downloads the model. Watch the live log for every step.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -107,9 +110,18 @@ fun SetupScreen(vm: AppViewModel) {
                 )
             }
 
-            SummaryRow("Download now", SetupManifest.formatBytes(download))
-            SummaryRow("Disk after setup", SetupManifest.formatBytes(need))
-            SummaryRow("Free on this phone", if (free > 0) SetupManifest.formatBytes(free) else "—")
+            SummaryRow(
+                label = "Download now",
+                value = SetupManifest.formatBytes(download),
+            )
+            SummaryRow(
+                label = "Disk after setup",
+                value = SetupManifest.formatBytes(need),
+            )
+            SummaryRow(
+                label = "Free on this phone",
+                value = if (free > 0) SetupManifest.formatBytes(free) else "—",
+            )
         }
 
         if (progress.phase != "idle") {
@@ -120,7 +132,7 @@ fun SetupScreen(vm: AppViewModel) {
                 )
                 if (progress.errorCode != null) {
                     Text(
-                        "Error ${progress.errorCode}",
+                        text = "Error ${progress.errorCode}",
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.SemiBold,
@@ -135,7 +147,7 @@ fun SetupScreen(vm: AppViewModel) {
                 )
                 if (progress.bytesTotal > 0 && progress.phase == "download") {
                     Text(
-                        "${SetupManifest.formatBytes(progress.bytesDone)} / ${SetupManifest.formatBytes(progress.bytesTotal)}",
+                        text = "${SetupManifest.formatBytes(progress.bytesDone)} / ${SetupManifest.formatBytes(progress.bytesTotal)}",
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -146,7 +158,10 @@ fun SetupScreen(vm: AppViewModel) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text("Live setup log", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        text = "Live setup log",
+                        style = MaterialTheme.typography.titleMedium,
+                    )
                     TextButton(
                         onClick = {
                             val text = progress.logLines.joinToString("\n") { line ->
@@ -157,7 +172,9 @@ fun SetupScreen(vm: AppViewModel) {
                             cm.setPrimaryClip(ClipData.newPlainText("kyrus-setup-log", text))
                         },
                         enabled = progress.logLines.isNotEmpty(),
-                    ) { Text("Copy") }
+                    ) {
+                        Text(text = "Copy")
+                    }
                 }
 
                 LazyColumn(
@@ -170,7 +187,10 @@ fun SetupScreen(vm: AppViewModel) {
                         .padding(10.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    items(progress.logLines, key = { it.time + it.message + it.hashCode() }) { line ->
+                    items(
+                        items = progress.logLines,
+                        key = { it.time + it.message + it.hashCode() },
+                    ) { line ->
                         val color = when (line.level) {
                             SetupLogLevel.Ok -> MaterialTheme.colorScheme.primary
                             SetupLogLevel.Warn -> MaterialTheme.colorScheme.tertiary
@@ -205,7 +225,7 @@ fun SetupScreen(vm: AppViewModel) {
             shape = RoundedCornerShape(14.dp),
         ) {
             Text(
-                when {
+                text = when {
                     done -> "Opening chat…"
                     running -> "Working…"
                     progress.phase == "error" || progress.phase == "blocked" -> "Retry setup"
@@ -218,7 +238,12 @@ fun SetupScreen(vm: AppViewModel) {
 }
 
 @Composable
-private fun ComponentCard(title: String, detail: String, size: String, network: Boolean) {
+private fun ComponentCard(
+    title: String,
+    detail: String,
+    size: String,
+    network: Boolean,
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -227,13 +252,29 @@ private fun ComponentCard(title: String, detail: String, size: String, network: 
             .padding(14.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        Row(Modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            Text(size, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+                text = size,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+            )
         }
-        Text(detail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(
-            if (network) "Network download" else "On device",
+            text = detail,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            text = if (network) "Network download" else "On device",
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.secondary,
         )
@@ -241,9 +282,23 @@ private fun ComponentCard(title: String, detail: String, size: String, network: 
 }
 
 @Composable
-private fun SummaryRow(label: String, value: String) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(label, style = MaterialTheme.typography.bodyMedium)
-        Text(value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+private fun SummaryRow(
+    label: String,
+    value: String,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium,
+        )
     }
 }
