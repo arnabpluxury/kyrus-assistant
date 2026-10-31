@@ -48,5 +48,5 @@ BootstrapManager → live log + GGUF download
 ChatRepository (Room) → conversations / messages / projects
 ```
 
-App release: https://github.com/arnabpluxury/kyrus-assistant/releases/tag/v0.3.0  
+App release (APK): https://github.com/arnabpluxury/kyrus-assistant/releases/tag/v0.4.0  
 Model release (GGUF): https://github.com/arnabpluxury/kyrus-assistant/releases/tag/v0.2.0
